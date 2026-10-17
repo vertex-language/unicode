@@ -456,8 +456,42 @@ func run() throws {
     w.array("scxOffsets", "uint32", scxOffsets, hexFormat: false)
     w.array("scxData", "uint16", scxData, hexFormat: false)
 
+    // East_Asian_Width (UAX #11), as runs; values index eawNames. What no
+    // line lists is N, except the unassigned code points of the CJK
+    // ideograph blocks and all of planes 2 and 3, which are W -- the
+    // defaults the file's header gives.
+    let eawNames: [string] = ["N", "A", "F", "H", "Na", "W"]
+    var eawOf = [uint8](repeating: 0, count: 0x110000)
+    let wideDefaults: [(uint32, uint32)] = [(0x3400, 0x4DBF), (0x4E00, 0x9FFF), (0xF900, 0xFAFF),
+                                            (0x20000, 0x2FFFD), (0x30000, 0x3FFFD)]
+    for (lo, hi) in wideDefaults {
+        var c = lo
+        while c <= hi { eawOf[int(c)] = 5; c += 1 }
+    }
+    for f in try fields("EastAsianWidth.txt") {
+        let (lo, hi) = codeRange(f[0])
+        var v: uint8 = 0
+        for k in 0..<eawNames.count where eawNames[k] == f[1] { v = uint8(k) }
+        var c = lo
+        while c <= hi { eawOf[int(c)] = v; c += 1 }
+    }
+    var eStarts: [uint32] = []
+    var eKinds: [uint32] = []
+    i = 0
+    while i < 0x110000 {
+        if i == 0 || eawOf[i] != eawOf[i - 1] {
+            eStarts.append(uint32(i))
+            eKinds.append(uint32(eawOf[i]))
+        }
+        i += 1
+    }
+    w.line("// East_Asian_Width as runs (EastAsianWidth.txt, with its defaults);")
+    w.line("// values index EastAsianWidth's cases: N, A, F, H, Na, W.")
+    w.array("eawStart", "uint32", eStarts)
+    w.array("eawKind", "uint8", eKinds, hexFormat: false)
+
     try fs.WriteText(fs.Path("tables.vs"), w.text)
-    print("wrote tables.vs: \(starts.count) category runs, \(upper.count)/\(lower.count)/\(title.count) case pairs, \(spKeys.count) special casings, \(simpleFold.count)+\(fullKeys.count) foldings, \(names.count) properties, \(scriptNames.count) scripts, \(scxRanges.count / 2) extension ranges")
+    print("wrote tables.vs: \(eStarts.count) east asian width runs, \(starts.count) category runs, \(upper.count)/\(lower.count)/\(title.count) case pairs, \(spKeys.count) special casings, \(simpleFold.count)+\(fullKeys.count) foldings, \(names.count) properties, \(scriptNames.count) scripts, \(scxRanges.count / 2) extension ranges")
 }
 
 // MARK: normalization (norm/tables.vs)

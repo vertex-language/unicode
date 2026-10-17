@@ -318,6 +318,39 @@ public func IsIDContinue(_ cp: uint32) -> bool {
 
 // MARK: scripts
 
+/// East_Asian_Width (UAX #11): how wide a character is set in East Asian
+/// typography, which is what terminals use for how many cells it takes.
+public enum EastAsianWidth: Equatable {
+    /// N: no East Asian width; narrow in practice.
+    case neutral
+    /// A: narrow or wide depending on context (East Asian legacy sets).
+    case ambiguous
+    /// F: a fullwidth form (U+FF01..).
+    case fullwidth
+    /// H: a halfwidth form (U+FF61..).
+    case halfwidth
+    /// Na: narrow (ASCII).
+    case narrow
+    /// W: wide (ideographs, Hangul, emoji presentation).
+    case wide
+}
+
+let eawValues: [EastAsianWidth] = [.neutral, .ambiguous, .fullwidth, .halfwidth, .narrow, .wide]
+
+/// EastAsianWidthOf is cp's East_Asian_Width, from EastAsianWidth.txt
+/// and its defaults.
+public func EastAsianWidthOf(_ cp: uint32) -> EastAsianWidth {
+    if cp > MaxCodePoint { return .neutral }
+    return eawValues[int(eawKind[runIndex(eawStart, cp)])]
+}
+
+/// IsWide: East_Asian_Width W or F -- two cells in a terminal.
+public func IsWide(_ cp: uint32) -> bool {
+    if cp < 0x1100 { return false }
+    let k = eawKind[runIndex(eawStart, min(cp, MaxCodePoint))]
+    return k == 5 || k == 2
+}
+
 /// Script is cp's Script property, by its long name ("Latin", "Greek",
 /// "Common", "Unknown").
 public func Script(_ cp: uint32) -> string {

@@ -78,6 +78,15 @@ func main() -> int32 {
     // Scripts.
     check(unicode.Script(0x41) == "Latin" && unicode.Script(0x3B1) == "Greek" && unicode.Script(0x30) == "Common", "Script: Latin, Greek, Common")
     check(unicode.Script(0x0378) == "Unknown", "Script: unassigned is Unknown")
+    // East_Asian_Width, against lines of EastAsianWidth.txt 17.0.0.
+    check(unicode.EastAsianWidthOf(0x41) == .narrow && unicode.EastAsianWidthOf(0x7F) == .neutral, "EastAsianWidth: A is Na, DEL is N")
+    check(unicode.EastAsianWidthOf(0xA1) == .ambiguous && unicode.EastAsianWidthOf(0x3B1) == .ambiguous, "EastAsianWidth: ¡ and α are A")
+    check(unicode.EastAsianWidthOf(0x4E2D) == .wide && unicode.EastAsianWidthOf(0xAC00) == .wide, "EastAsianWidth: 中 and 가 are W")
+    check(unicode.EastAsianWidthOf(0xFF21) == .fullwidth && unicode.EastAsianWidthOf(0xFF76) == .halfwidth, "EastAsianWidth: Ａ is F, ｶ is H")
+    check(unicode.EastAsianWidthOf(0x1F600) == .wide && unicode.EastAsianWidthOf(0x2764) == .neutral, "EastAsianWidth: 😀 is W, ❤ (text presentation) is N")
+    check(unicode.EastAsianWidthOf(0x9FFF) == .wide && unicode.EastAsianWidthOf(0x2FFFD) == .wide, "EastAsianWidth: unassigned CJK and plane 2 default to W")
+    check(unicode.EastAsianWidthOf(0xE0000) == .neutral && unicode.EastAsianWidthOf(0x10FFFF) == .neutral, "EastAsianWidth: unlisted elsewhere is N")
+    check(unicode.IsWide(0x3042) && unicode.IsWide(0xFF01) && !unicode.IsWide(0xFF61) && !unicode.IsWide(0x41), "IsWide: W and F, not H or Na")
     check(unicode.ScriptName("Grek") == "Greek" && unicode.ScriptName("Greek") == "Greek" && unicode.ScriptName("Nope") == nil, "ScriptName: short and long")
     let scx = unicode.ScriptExtensions(0x3099)
     check(scx.contains("Hiragana") && scx.contains("Katakana"), "ScriptExtensions: U+3099 is Hiragana and Katakana")

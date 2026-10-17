@@ -15,7 +15,7 @@ the line it came from.
 
 | Package | What it is |
 | :--- | :--- |
-| **`unicode`** | Code point properties: `Category` (General_Category, with `IsLetter`, `IsNumber`, `IsDigit`, `IsMark`, `IsPunctuation`, `IsSymbol`, `IsSeparator`, `IsControl`), the binary properties (`IsWhitespace`, `IsAlphabetic`, `IsUppercase`, `IsLowercase`, `IsCased`, `IsIDStart`, `IsIDContinue`, and all 70 by any name through `Property`), scripts (`Script`, `ScriptExtensions`, `ScriptRanges`), and case: simple (`ToUpper`, `ToLower`, `ToTitle`, `CaseFold`), full (`UppercaseMapping`, `LowercaseMapping`, `TitlecaseMapping`, `CaseFoldMapping`), and over text (`Uppercased`, `Lowercased` with Final_Sigma, `CaseFolded`, `EqualFold`). |
+| **`unicode`** | Code point properties: `Category` (General_Category, with `IsLetter`, `IsNumber`, `IsDigit`, `IsMark`, `IsPunctuation`, `IsSymbol`, `IsSeparator`, `IsControl`), the binary properties (`IsWhitespace`, `IsAlphabetic`, `IsUppercase`, `IsLowercase`, `IsCased`, `IsIDStart`, `IsIDContinue`, and all 70 by any name through `Property`), scripts (`Script`, `ScriptExtensions`, `ScriptRanges`), East_Asian_Width (`EastAsianWidthOf`, `IsWide`), and case: simple (`ToUpper`, `ToLower`, `ToTitle`, `CaseFold`), full (`UppercaseMapping`, `LowercaseMapping`, `TitlecaseMapping`, `CaseFoldMapping`), and over text (`Uppercased`, `Lowercased` with Final_Sigma, `CaseFolded`, `EqualFold`). |
 | **`unicode/norm`** | Normalization (UAX #15): `Normalize(cps, .nfc)` for NFC, NFD, NFKC and NFKD, `NormalizeString`, `IsNormalized`, and the parts: `Decompose`, `Compose`, `CombiningClass`. |
 | **`unicode/utf8`** | UTF-8: `Append`, `Width`, `DecodeAt`, `Decode` (bytes to a string, lossily), `Encode`, `CodePoints`, `IsValid`. |
 | **`unicode/utf16`** | UTF-16: `Encode` (a string to units), `Decode` (units to a string), `CodePoints` (keeping lone surrogates), `FromCodePoints`, `Append`, `Width`, `DecodeAt`, `Combine`, `Surrogates`, `IsHighSurrogate`, `IsLowSurrogate`. |
@@ -39,6 +39,7 @@ import (
 unicode.Category(0x3B1)                 // .lowercaseLetter (α)
 unicode.IsIDStart(0x2118)               // true: ℘ is Other_ID_Start
 unicode.Script(0x5D0)                   // "Hebrew"
+unicode.EastAsianWidthOf(0x4E2D)        // .wide: two cells in a terminal
 unicode.UppercasedString("straße")      // "STRASSE"
 unicode.LowercasedString("ΟΔΟΣ")        // "οδος": the final Σ becomes ς
 unicode.Property("Extended_Pictographic")!.Contains(0x1F600)   // true
