@@ -351,6 +351,50 @@ public func IsWide(_ cp: uint32) -> bool {
     return k == 5 || k == 2
 }
 
+/// Bidi_Class (UAX #9): how a character takes part in ordering
+/// bidirectional text. The cases are the classes' abbreviations.
+public enum BidiClass: Equatable {
+    /// Strong: left-to-right, right-to-left, Arabic letter.
+    case L
+    case R
+    case AL
+    /// Weak: European number, its separator and terminator, Arabic
+    /// number, common separator, non-spacing mark, boundary neutral.
+    case EN
+    case ES
+    case ET
+    case AN
+    case CS
+    case NSM
+    case BN
+    /// Neutral: paragraph separator, segment separator, whitespace,
+    /// other neutrals.
+    case B
+    case S
+    case WS
+    case ON
+    /// Explicit formatting: embeddings, overrides, their pop, isolates.
+    case LRE
+    case LRO
+    case RLE
+    case RLO
+    case PDF
+    case LRI
+    case RLI
+    case FSI
+    case PDI
+}
+
+let bidiValues: [BidiClass] = [.L, .R, .AL, .EN, .ES, .ET, .AN, .CS, .NSM, .BN, .B, .S, .WS, .ON,
+                               .LRE, .LRO, .RLE, .RLO, .PDF, .LRI, .RLI, .FSI, .PDI]
+
+/// BidiClassOf is cp's Bidi_Class, from UnicodeData.txt and the defaults
+/// for unassigned code points.
+public func BidiClassOf(_ cp: uint32) -> BidiClass {
+    if cp > MaxCodePoint { return .L }
+    return bidiValues[int(bidiKind[runIndex(bidiStart, cp)])]
+}
+
 /// Script is cp's Script property, by its long name ("Latin", "Greek",
 /// "Common", "Unknown").
 public func Script(_ cp: uint32) -> string {

@@ -15,7 +15,7 @@ the line it came from.
 
 | Package | What it is |
 | :--- | :--- |
-| **`unicode`** | Code point properties: `Category` (General_Category, with `IsLetter`, `IsNumber`, `IsDigit`, `IsMark`, `IsPunctuation`, `IsSymbol`, `IsSeparator`, `IsControl`), the binary properties (`IsWhitespace`, `IsAlphabetic`, `IsUppercase`, `IsLowercase`, `IsCased`, `IsIDStart`, `IsIDContinue`, and all 70 by any name through `Property`), scripts (`Script`, `ScriptExtensions`, `ScriptRanges`), East_Asian_Width (`EastAsianWidthOf`, `IsWide`), and case: simple (`ToUpper`, `ToLower`, `ToTitle`, `CaseFold`), full (`UppercaseMapping`, `LowercaseMapping`, `TitlecaseMapping`, `CaseFoldMapping`), and over text (`Uppercased`, `Lowercased` with Final_Sigma, `CaseFolded`, `EqualFold`). |
+| **`unicode`** | Code point properties: `Category` (General_Category, with `IsLetter`, `IsNumber`, `IsDigit`, `IsMark`, `IsPunctuation`, `IsSymbol`, `IsSeparator`, `IsControl`), the binary properties (`IsWhitespace`, `IsAlphabetic`, `IsUppercase`, `IsLowercase`, `IsCased`, `IsIDStart`, `IsIDContinue`, and all 70 by any name through `Property`), scripts (`Script`, `ScriptExtensions`, `ScriptRanges`), East_Asian_Width (`EastAsianWidthOf`, `IsWide`), Bidi_Class (`BidiClassOf`), and case: simple (`ToUpper`, `ToLower`, `ToTitle`, `CaseFold`), full (`UppercaseMapping`, `LowercaseMapping`, `TitlecaseMapping`, `CaseFoldMapping`), and over text (`Uppercased`, `Lowercased` with Final_Sigma, `CaseFolded`, `EqualFold`). |
 | **`unicode/norm`** | Normalization (UAX #15): `Normalize(cps, .nfc)` for NFC, NFD, NFKC and NFKD, `NormalizeString`, `IsNormalized`, and the parts: `Decompose`, `Compose`, `CombiningClass`. |
 | **`unicode/utf8`** | UTF-8: `Append`, `Width`, `DecodeAt`, `Decode` (bytes to a string, lossily), `Encode`, `CodePoints`, `IsValid`. |
 | **`unicode/utf16`** | UTF-16: `Encode` (a string to units), `Decode` (units to a string), `CodePoints` (keeping lone surrogates), `FromCodePoints`, `Append`, `Width`, `DecodeAt`, `Combine`, `Surrogates`, `IsHighSurrogate`, `IsLowSurrogate`. |
@@ -56,8 +56,8 @@ utf8.Decode(bytes)                      // "€"
 
 ## The tables
 
-`cmd/gen` reads the UCD files in `ucd/` and writes `tables.vs`: General_Category
-and Script as runs, the binary properties as sorted ranges, the case mappings
+`cmd/gen` reads the UCD files in `ucd/` and writes `tables.vs`: General_Category,
+Script, East_Asian_Width and Bidi_Class as runs, the binary properties as sorted ranges, the case mappings
 and foldings as sorted pairs. It writes `norm/tables.vs` too: the combining
 classes, both kinds of decomposition, and the primary composites (Hangul is
 arithmetic, in code). Lookups are binary searches, with ASCII answered
@@ -65,7 +65,7 @@ without one.
 
 | File | Gives |
 | :--- | :--- |
-| `UnicodeData.txt` | General_Category; the simple case mappings; combining classes and decompositions |
+| `UnicodeData.txt` | General_Category; Bidi_Class (the defaults for unassigned code points are in `gen`); the simple case mappings; combining classes and decompositions |
 | `SpecialCasing.txt` | the full case mappings (the unconditional ones; Final_Sigma is in code) |
 | `CaseFolding.txt` | simple and full case folding |
 | `PropList.txt`, `DerivedCoreProperties.txt`, `DerivedBinaryProperties.txt`, `DerivedNormalizationProps.txt`, `emoji-data.txt` | the binary properties; Full_Composition_Exclusion |

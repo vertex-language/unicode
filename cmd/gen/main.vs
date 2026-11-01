@@ -222,20 +222,42 @@ func run() throws {
     var lower: [(uint32, uint32)] = []
     var title: [(uint32, uint32)] = []
     var rangeStart: uint32 = 0
+    // Bidi_Class (UAX #9), values indexing bidiNames. What UnicodeData.txt
+    // doesn't list takes the defaults DerivedBidiClass.txt's header gives:
+    // R and AL over the right-to-left blocks, ET over the currency
+    // symbols, and L elsewhere.
+    let bidiNames: [string] = ["L", "R", "AL", "EN", "ES", "ET", "AN", "CS", "NSM", "BN", "B", "S", "WS", "ON",
+                               "LRE", "LRO", "RLE", "RLO", "PDF", "LRI", "RLI", "FSI", "PDI"]
+    var bidiOf = [uint8](repeating: 0, count: 0x110000)
+    let bidiDefaults: [(uint32, uint32, uint8)] = [
+        (0x0590, 0x05FF, 1), (0x07C0, 0x085F, 1), (0xFB1D, 0xFB4F, 1), (0x10800, 0x10CFF, 1), (0x10D40, 0x10EBF, 1),
+        (0x10F00, 0x10F2F, 1), (0x10F70, 0x10FFF, 1), (0x1E800, 0x1EC6F, 1), (0x1ECC0, 0x1ECFF, 1), (0x1ED50, 0x1EDFF, 1),
+        (0x1EF00, 0x1EFFF, 1),
+        (0x0600, 0x07BF, 2), (0x0860, 0x08FF, 2), (0xFB50, 0xFDCF, 2), (0xFDF0, 0xFDFF, 2), (0xFE70, 0xFEFF, 2),
+        (0x10D00, 0x10D3F, 2), (0x10EC0, 0x10EFF, 2), (0x10F30, 0x10F6F, 2), (0x1EC70, 0x1ECBF, 2), (0x1ED00, 0x1ED4F, 2),
+        (0x1EE00, 0x1EEFF, 2),
+        (0x20A0, 0x20CF, 5)]
+    for (lo, hi, v) in bidiDefaults {
+        var c = lo
+        while c <= hi { bidiOf[int(c)] = v; c += 1 }
+    }
     for f in try fields("UnicodeData.txt") {
         let cp = hex(f[0])
         let name = f[1]
         let c = uint8(categoryIndex(f[2]))
+        var bc: uint8 = 0
+        for k in 0..<bidiNames.count where bidiNames[k] == f[4] { bc = uint8(k) }
         if name.hasSuffix(", First>") {
             rangeStart = cp
             continue
         }
         if name.hasSuffix(", Last>") {
             var x = rangeStart
-            while x <= cp { cat[int(x)] = c; x += 1 }
+            while x <= cp { cat[int(x)] = c; bidiOf[int(x)] = bc; x += 1 }
             continue
         }
         cat[int(cp)] = c
+        bidiOf[int(cp)] = bc
         if !f[12].isEmpty { upper.append((cp, hex(f[12]))) }
         if !f[13].isEmpty { lower.append((cp, hex(f[13]))) }
         if !f[14].isEmpty {
@@ -490,8 +512,24 @@ func run() throws {
     w.array("eawStart", "uint32", eStarts)
     w.array("eawKind", "uint8", eKinds, hexFormat: false)
 
+    var bStarts: [uint32] = []
+    var bKinds: [uint32] = []
+    i = 0
+    while i < 0x110000 {
+        if i == 0 || bidiOf[i] != bidiOf[i - 1] {
+            bStarts.append(uint32(i))
+            bKinds.append(uint32(bidiOf[i]))
+        }
+        i += 1
+    }
+    w.line("// Bidi_Class as runs (UnicodeData.txt, with DerivedBidiClass.txt's defaults);")
+    w.line("// values index BidiClass's cases in UAX #9's order: L, R, AL, EN, ES, ET, AN,")
+    w.line("// CS, NSM, BN, B, S, WS, ON, LRE, LRO, RLE, RLO, PDF, LRI, RLI, FSI, PDI.")
+    w.array("bidiStart", "uint32", bStarts)
+    w.array("bidiKind", "uint8", bKinds, hexFormat: false)
+
     try fs.WriteText(fs.Path("tables.vs"), w.text)
-    print("wrote tables.vs: \(eStarts.count) east asian width runs, \(starts.count) category runs, \(upper.count)/\(lower.count)/\(title.count) case pairs, \(spKeys.count) special casings, \(simpleFold.count)+\(fullKeys.count) foldings, \(names.count) properties, \(scriptNames.count) scripts, \(scxRanges.count / 2) extension ranges")
+    print("wrote tables.vs: \(bStarts.count) bidi class runs, \(eStarts.count) east asian width runs, \(starts.count) category runs, \(upper.count)/\(lower.count)/\(title.count) case pairs, \(spKeys.count) special casings, \(simpleFold.count)+\(fullKeys.count) foldings, \(names.count) properties, \(scriptNames.count) scripts, \(scxRanges.count / 2) extension ranges")
 }
 
 // MARK: normalization (norm/tables.vs)
