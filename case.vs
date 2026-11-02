@@ -11,7 +11,7 @@ import "unicode/utf8"
 
 /// pairLookup binary-searches a sorted from-table and returns the mapped
 /// code point, or cp itself.
-func pairLookup(_ from: [uint32], _ to: [uint32], _ cp: uint32) -> uint32 {
+func pairLookup(from: [uint32], to: [uint32], cp: uint32) -> uint32 {
     var lo = 0
     var hi = from.count - 1
     while lo <= hi {
@@ -24,7 +24,7 @@ func pairLookup(_ from: [uint32], _ to: [uint32], _ cp: uint32) -> uint32 {
 }
 
 /// multiLookup finds a one-to-many mapping, or nil.
-func multiLookup(_ keys: [uint32], _ offsets: [uint32], _ data: [uint32], _ cp: uint32) -> [uint32]? {
+func multiLookup(keys: [uint32], offsets: [uint32], data: [uint32], cp: uint32) -> [uint32]? {
     var lo = 0
     var hi = keys.count - 1
     while lo <= hi {
@@ -45,58 +45,58 @@ func multiLookup(_ keys: [uint32], _ offsets: [uint32], _ data: [uint32], _ cp: 
 }
 
 /// ToUpper is cp's simple uppercase mapping.
-public func ToUpper(_ cp: uint32) -> uint32 {
+public func ToUpper(cp: uint32) -> uint32 {
     if cp < 0x80 { return cp >= 0x61 && cp <= 0x7A ? cp - 32 : cp }
     return pairLookup(upperFrom, upperTo, cp)
 }
 
 /// ToLower is cp's simple lowercase mapping.
-public func ToLower(_ cp: uint32) -> uint32 {
+public func ToLower(cp: uint32) -> uint32 {
     if cp < 0x80 { return cp >= 0x41 && cp <= 0x5A ? cp + 32 : cp }
     return pairLookup(lowerFrom, lowerTo, cp)
 }
 
 /// ToTitle is cp's simple titlecase mapping.
-public func ToTitle(_ cp: uint32) -> uint32 {
+public func ToTitle(cp: uint32) -> uint32 {
     if cp < 0x80 { return cp >= 0x61 && cp <= 0x7A ? cp - 32 : cp }
     return pairLookup(titleFrom, titleTo, cp)
 }
 
 /// CaseFold is cp's simple case folding: the one code point that stands
 /// for its case-insensitive class.
-public func CaseFold(_ cp: uint32) -> uint32 {
+public func CaseFold(cp: uint32) -> uint32 {
     if cp < 0x80 { return cp >= 0x41 && cp <= 0x5A ? cp + 32 : cp }
     return pairLookup(foldFrom, foldTo, cp)
 }
 
 /// UppercaseMapping is cp's full uppercase mapping, which may be more
 /// than one code point.
-public func UppercaseMapping(_ cp: uint32) -> [uint32] {
+public func UppercaseMapping(cp: uint32) -> [uint32] {
     if cp >= 0x80, let m = multiLookup(specialUpperKeys, specialUpperOffsets, specialUpperData, cp) { return m }
     return [ToUpper(cp)]
 }
 
 /// LowercaseMapping is cp's full lowercase mapping, without the
 /// context-dependent Final_Sigma rule (Lowercased applies it).
-public func LowercaseMapping(_ cp: uint32) -> [uint32] {
+public func LowercaseMapping(cp: uint32) -> [uint32] {
     if cp >= 0x80, let m = multiLookup(specialLowerKeys, specialLowerOffsets, specialLowerData, cp) { return m }
     return [ToLower(cp)]
 }
 
 /// TitlecaseMapping is cp's full titlecase mapping.
-public func TitlecaseMapping(_ cp: uint32) -> [uint32] {
+public func TitlecaseMapping(cp: uint32) -> [uint32] {
     if cp >= 0x80, let m = multiLookup(specialTitleKeys, specialTitleOffsets, specialTitleData, cp) { return m }
     return [ToTitle(cp)]
 }
 
 /// CaseFoldMapping is cp's full case folding.
-public func CaseFoldMapping(_ cp: uint32) -> [uint32] {
+public func CaseFoldMapping(cp: uint32) -> [uint32] {
     if cp >= 0x80, let m = multiLookup(fullFoldKeys, fullFoldOffsets, fullFoldData, cp) { return m }
     return [CaseFold(cp)]
 }
 
 /// Uppercased applies the full uppercase mapping to text.
-public func Uppercased(_ cps: [uint32]) -> [uint32] {
+public func Uppercased(cps: [uint32]) -> [uint32] {
     var out: [uint32] = []
     out.reserveCapacity(cps.count)
     for cp in cps {
@@ -111,7 +111,7 @@ public func Uppercased(_ cps: [uint32]) -> [uint32] {
 
 /// Lowercased applies the full lowercase mapping to text, with the
 /// Final_Sigma rule: Σ becomes ς at the end of a word.
-public func Lowercased(_ cps: [uint32]) -> [uint32] {
+public func Lowercased(cps: [uint32]) -> [uint32] {
     var out: [uint32] = []
     out.reserveCapacity(cps.count)
     var i = 0
@@ -130,7 +130,7 @@ public func Lowercased(_ cps: [uint32]) -> [uint32] {
 }
 
 /// CaseFolded applies full case folding to text.
-public func CaseFolded(_ cps: [uint32]) -> [uint32] {
+public func CaseFolded(cps: [uint32]) -> [uint32] {
     var out: [uint32] = []
     out.reserveCapacity(cps.count)
     for cp in cps { out.append(contentsOf: CaseFoldMapping(cp)) }
@@ -139,7 +139,7 @@ public func CaseFolded(_ cps: [uint32]) -> [uint32] {
 
 /// isFinalSigma is the Final_Sigma condition (Unicode §3.13, table 3-17):
 /// a cased letter comes before, skipping case-ignorables, and none after.
-func isFinalSigma(_ cps: [uint32], _ at: int) -> bool {
+func isFinalSigma(cps: [uint32], at: int) -> bool {
     var j = at - 1
     var before = false
     while j >= 0 {
@@ -165,7 +165,7 @@ func isFinalSigma(_ cps: [uint32], _ at: int) -> bool {
 }
 
 /// EqualFold says whether two strings are equal under simple case folding.
-public func EqualFold(_ a: string, _ b: string) -> bool {
+public func EqualFold(a: string, b: string) -> bool {
     var ia = a.unicodeScalars.makeIterator()
     var ib = b.unicodeScalars.makeIterator()
     while true {
@@ -179,22 +179,22 @@ public func EqualFold(_ a: string, _ b: string) -> bool {
 
 /// UppercasedString, LowercasedString and CaseFoldedString are the text
 /// forms for Vertex strings.
-public func UppercasedString(_ s: string) -> string {
+public func UppercasedString(s: string) -> string {
     return fromScalars(Uppercased(scalars(s)))
 }
 
-public func LowercasedString(_ s: string) -> string {
+public func LowercasedString(s: string) -> string {
     return fromScalars(Lowercased(scalars(s)))
 }
 
-public func CaseFoldedString(_ s: string) -> string {
+public func CaseFoldedString(s: string) -> string {
     return fromScalars(CaseFolded(scalars(s)))
 }
 
-func scalars(_ s: string) -> [uint32] {
+func scalars(s: string) -> [uint32] {
     return utf8.CodePoints(s)
 }
 
-func fromScalars(_ cps: [uint32]) -> string {
+func fromScalars(cps: [uint32]) -> string {
     return utf8.FromCodePoints(cps)
 }

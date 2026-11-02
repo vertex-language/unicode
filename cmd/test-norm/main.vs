@@ -15,7 +15,7 @@ import (
     "unicode/norm"
 )
 
-func parse(_ field: string) -> [uint32] {
+func parse(field: string) -> [uint32] {
     var out: [uint32] = []
     for part in field.split(separator: " ", omittingEmptySubsequences: true) {
         var v: uint32 = 0

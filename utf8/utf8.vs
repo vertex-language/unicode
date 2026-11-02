@@ -8,7 +8,7 @@ package utf8
 /// Width is how many bytes a code point takes: 1 to 4. A surrogate or a
 /// value past U+10FFFF takes 3, the width of U+FFFD, which is written
 /// in its place.
-public func Width(_ cp: uint32) -> int {
+public func Width(cp: uint32) -> int {
     if cp < 0x80 { return 1 }
     if cp < 0x800 { return 2 }
     if cp < 0x10000 || cp > 0x10FFFF { return 3 }
@@ -17,7 +17,7 @@ public func Width(_ cp: uint32) -> int {
 
 /// Append appends a code point's encoding. A surrogate or a value past
 /// U+10FFFF, which UTF-8 can't carry, appends U+FFFD.
-public func Append(_ out: inout [uint8], _ cp: uint32) {
+public func Append(out: inout [uint8], cp: uint32) {
     var c = cp
     if (c >= 0xD800 && c <= 0xDFFF) || c > 0x10FFFF { c = 0xFFFD }
     if c < 0x80 {
@@ -38,7 +38,7 @@ public func Append(_ out: inout [uint8], _ cp: uint32) {
 }
 
 /// Encode is the encoding of a sequence of code points.
-public func Encode(_ cps: [uint32]) -> [uint8] {
+public func Encode(cps: [uint32]) -> [uint8] {
     var out: [uint8] = []
     out.reserveCapacity(cps.count)
     for cp in cps { Append(&out, cp) }
@@ -46,13 +46,13 @@ public func Encode(_ cps: [uint32]) -> [uint8] {
 }
 
 /// FromCodePoints is a string of code points.
-public func FromCodePoints(_ cps: [uint32]) -> string {
+public func FromCodePoints(cps: [uint32]) -> string {
     return string(decoding: Encode(cps), as: UTF8.self)
 }
 
 /// DecodeAt reads the code point whose encoding starts at b[i], and how
 /// many bytes it took.
-public func DecodeAt(_ b: [uint8], _ i: int) -> (codePoint: uint32, width: int) {
+public func DecodeAt(b: [uint8], i: int) -> (codePoint: uint32, width: int) {
     let n = b.count
     let c0 = uint32(b[i])
     if c0 < 0x80 { return (c0, 1) }
@@ -73,19 +73,19 @@ public func DecodeAt(_ b: [uint8], _ i: int) -> (codePoint: uint32, width: int) 
     return (cp, 4)
 }
 
-func isContinuation(_ b: uint8) -> bool {
+func isContinuation(b: uint8) -> bool {
     return b & 0xC0 == 0x80
 }
 
 /// CodePoints are a string's code points.
-public func CodePoints(_ s: string) -> [uint32] {
+public func CodePoints(s: string) -> [uint32] {
     var out: [uint32] = []
     for sc in s.unicodeScalars { out.append(sc.value) }
     return out
 }
 
 /// DecodeCodePoints reads all of b's code points.
-public func DecodeCodePoints(_ b: [uint8]) -> [uint32] {
+public func DecodeCodePoints(b: [uint8]) -> [uint32] {
     var out: [uint32] = []
     out.reserveCapacity(b.count)
     var i = 0
@@ -98,7 +98,7 @@ public func DecodeCodePoints(_ b: [uint8]) -> [uint32] {
 }
 
 /// IsValid says whether b[from..<to] is well-formed UTF-8.
-public func IsValid(_ b: [uint8], _ from: int = 0, _ to: int = -1) -> bool {
+public func IsValid(b: [uint8], from: int = 0, to: int = -1) -> bool {
     let end = to < 0 ? b.count : to
     var i = from
     while i < end {
@@ -116,7 +116,7 @@ public func IsValid(_ b: [uint8], _ from: int = 0, _ to: int = -1) -> bool {
 
 /// Decode is the string b[from..<to] spells, made without first copying
 /// the span into an array of its own. Malformed input decodes lossily.
-public func Decode(_ b: [uint8], _ from: int = 0, _ to: int = -1) -> string {
+public func Decode(b: [uint8], from: int = 0, to: int = -1) -> string {
     let end = to < 0 ? b.count : to
     if from >= end { return "" }
     if !IsValid(b, from, end) {
@@ -137,4 +137,4 @@ public func Decode(_ b: [uint8], _ from: int = 0, _ to: int = -1) -> string {
 // The runtime makes a string from a span of valid UTF-8 (stdlib ABI).
 // vsc_TODO: String(decoding: b[from..<to], as: UTF8.self) should do this.
 @_silgen_name("vertex_string_from_utf8")
-func stringFromUTF8(_ ptr: UnsafeRawPointer, _ count: int64) -> string
+func stringFromUTF8(ptr: UnsafeRawPointer, count: int64) -> string

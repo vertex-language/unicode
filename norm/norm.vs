@@ -27,7 +27,7 @@ let tCount: uint32 = 28
 let nCount: uint32 = vCount * tCount
 let sCount: uint32 = lCount * nCount
 
-func search(_ keys: [uint32], _ cp: uint32) -> int {
+func search(keys: [uint32], cp: uint32) -> int {
     var lo = 0
     var hi = keys.count
     while lo < hi {
@@ -38,12 +38,12 @@ func search(_ keys: [uint32], _ cp: uint32) -> int {
 }
 
 /// CombiningClass is a code point's Canonical_Combining_Class.
-public func CombiningClass(_ cp: uint32) -> uint8 {
+public func CombiningClass(cp: uint32) -> uint8 {
     let i = search(cccFrom, cp)
     return i < 0 ? 0 : uint8(cccTo[i])
 }
 
-func appendDecomposed(_ cp: uint32, compat: bool, _ out: inout [uint32]) {
+func appendDecomposed(cp: uint32, compat: bool, out: inout [uint32]) {
     if cp >= sBase && cp < sBase + sCount {
         let s = cp - sBase
         out.append(lBase + s / nCount)
@@ -77,7 +77,7 @@ func appendDecomposed(_ cp: uint32, compat: bool, _ out: inout [uint32]) {
 
 /// Decompose is the full canonical (or compatibility) decomposition, in
 /// canonical order.
-public func Decompose(_ cps: [uint32], compat: bool) -> [uint32] {
+public func Decompose(cps: [uint32], compat: bool) -> [uint32] {
     var out: [uint32] = []
     out.reserveCapacity(cps.count)
     for cp in cps { appendDecomposed(cp, compat: compat, &out) }
@@ -86,7 +86,7 @@ public func Decompose(_ cps: [uint32], compat: bool) -> [uint32] {
 }
 
 /// reorder puts each run of non-starters in combining class order, stably.
-func reorder(_ cps: inout [uint32]) {
+func reorder(cps: inout [uint32]) {
     var i = 0
     while i < cps.count {
         if CombiningClass(cps[i]) == 0 {
@@ -116,7 +116,7 @@ func reorder(_ cps: inout [uint32]) {
 
 /// primaryComposite is the composite of a starter and a following code
 /// point, or nil.
-func primaryComposite(_ a: uint32, _ b: uint32) -> uint32? {
+func primaryComposite(a: uint32, b: uint32) -> uint32? {
     if a >= lBase && a < lBase + lCount && b >= vBase && b < vBase + vCount {
         return sBase + ((a - lBase) * vCount + (b - vBase)) * tCount
     }
@@ -135,7 +135,7 @@ func primaryComposite(_ a: uint32, _ b: uint32) -> uint32? {
 }
 
 /// Compose is the canonical composition of a decomposed sequence.
-public func Compose(_ cps: [uint32]) -> [uint32] {
+public func Compose(cps: [uint32]) -> [uint32] {
     var out = cps
     if out.isEmpty { return out }
     var starter = -1
@@ -167,7 +167,7 @@ public func Compose(_ cps: [uint32]) -> [uint32] {
 }
 
 /// Normalize puts code points in a normalization form.
-public func Normalize(_ cps: [uint32], _ form: Form) -> [uint32] {
+public func Normalize(cps: [uint32], form: Form) -> [uint32] {
     switch form {
     case .nfd: return Decompose(cps, compat: false)
     case .nfkd: return Decompose(cps, compat: true)
@@ -177,12 +177,12 @@ public func Normalize(_ cps: [uint32], _ form: Form) -> [uint32] {
 }
 
 /// NormalizeString is Normalize over a string's code points.
-public func NormalizeString(_ s: string, _ form: Form) -> string {
+public func NormalizeString(s: string, form: Form) -> string {
     return utf8.FromCodePoints(Normalize(utf8.CodePoints(s), form))
 }
 
 /// IsNormalized says whether code points are already in a form.
-public func IsNormalized(_ cps: [uint32], _ form: Form) -> bool {
+public func IsNormalized(cps: [uint32], form: Form) -> bool {
     // Pure ASCII is in every form.
     var ascii = true
     for cp in cps where cp >= 0x80 { ascii = false; break }

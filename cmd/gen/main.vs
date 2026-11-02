@@ -14,7 +14,7 @@ let version = "17.0.0"
 
 /// fields reads a UCD file's data lines: comments stripped, split on ;,
 /// each field trimmed. Blank lines are skipped.
-func fields(_ name: string) throws -> [[string]] {
+func fields(name: string) throws -> [[string]] {
     let text = try fs.ReadText(fs.Path("ucd/" + name))
     var out: [[string]] = []
     for line in text.split(separator: "\n", omittingEmptySubsequences: true) {
@@ -41,7 +41,7 @@ func fields(_ name: string) throws -> [[string]] {
     return out
 }
 
-func trim(_ b: [uint8]) -> string {
+func trim(b: [uint8]) -> string {
     var s = 0
     var e = b.count
     while s < e && (b[s] == 0x20 || b[s] == 0x09 || b[s] == 0x0D) { s += 1 }
@@ -52,7 +52,7 @@ func trim(_ b: [uint8]) -> string {
     return string(decoding: out, as: UTF8.self)
 }
 
-func hex(_ s: string) -> uint32 {
+func hex(s: string) -> uint32 {
     var v: uint32 = 0
     for c in s.utf8 {
         var d: uint32 = 0
@@ -63,7 +63,7 @@ func hex(_ s: string) -> uint32 {
 }
 
 /// codeRange reads "0041" or "0041..005A".
-func codeRange(_ s: string) -> (uint32, uint32) {
+func codeRange(s: string) -> (uint32, uint32) {
     var first: [uint8] = []
     var second: [uint8] = []
     var dots = 0
@@ -77,7 +77,7 @@ func codeRange(_ s: string) -> (uint32, uint32) {
 }
 
 /// codes reads a space-separated list of code points.
-func codes(_ s: string) -> [uint32] {
+func codes(s: string) -> [uint32] {
     var out: [uint32] = []
     for part in s.split(separator: " ", omittingEmptySubsequences: true) {
         out.append(hex(string(part)))
@@ -89,7 +89,7 @@ func codes(_ s: string) -> [uint32] {
 
 /// propertyRanges collects every binary property named in a file into
 /// sorted, merged range sets, in the order the file names them.
-func propertyRanges(_ file: string) throws -> [(string, [uint32])] {
+func propertyRanges(file: string) throws -> [(string, [uint32])] {
     var order: [string] = []
     var raw: [string: [uint32]] = [:]
     for f in try fields(file) {
@@ -109,7 +109,7 @@ func propertyRanges(_ file: string) throws -> [(string, [uint32])] {
 }
 
 /// merge sorts flat ranges and joins the ones that touch or overlap.
-func merge(_ flat: [uint32]) -> [uint32] {
+func merge(flat: [uint32]) -> [uint32] {
     var pairs: [(uint32, uint32)] = []
     var i = 0
     while i + 1 < flat.count {
@@ -134,9 +134,9 @@ func merge(_ flat: [uint32]) -> [uint32] {
 final class Writer {
     var text: string = ""
 
-    func line(_ s: string) { text += s + "\n" }
+    func line(s: string) { text += s + "\n" }
 
-    func array(_ name: string, _ type: string, _ values: [uint32], hexFormat: bool = true) {
+    func array(name: string, type: string, values: [uint32], hexFormat: bool = true) {
         text += "let \(name): [\(type)] = ["
         var i = 0
         for v in values {
@@ -148,7 +148,7 @@ final class Writer {
     }
 }
 
-func hexString(_ v: uint32) -> string {
+func hexString(v: uint32) -> string {
     let digits: [uint8] = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 65, 66, 67, 68, 69, 70]
     var out: [uint8] = []
     var x = v
@@ -162,7 +162,7 @@ func hexString(_ v: uint32) -> string {
 
 let categoryNames: [string] = ["Cn", "Lu", "Ll", "Lt", "Lm", "Lo", "Mn", "Mc", "Me", "Nd", "Nl", "No", "Pc", "Pd", "Ps", "Pe", "Pi", "Pf", "Po", "Sm", "Sc", "Sk", "So", "Zs", "Zl", "Zp", "Cc", "Cf", "Cs", "Co"]
 
-func categoryIndex(_ s: string) -> uint32 {
+func categoryIndex(s: string) -> uint32 {
     var i = 0
     while i < categoryNames.count {
         if categoryNames[i] == s { return uint32(i) }
@@ -171,7 +171,7 @@ func categoryIndex(_ s: string) -> uint32 {
     return 0
 }
 
-func pairs(_ w: Writer, _ name: string, _ list: [(uint32, uint32)]) {
+func pairs(w: Writer, name: string, list: [(uint32, uint32)]) {
     var from: [uint32] = []
     var to: [uint32] = []
     for (a, b) in list {
@@ -182,7 +182,7 @@ func pairs(_ w: Writer, _ name: string, _ list: [(uint32, uint32)]) {
     w.array(name + "To", "uint32", to)
 }
 
-func multi(_ w: Writer, _ name: string, _ keys: [uint32], _ values: [[uint32]]) {
+func multi(w: Writer, name: string, keys: [uint32], values: [[uint32]]) {
     var offsets: [uint32] = []
     var data: [uint32] = []
     for v in values {

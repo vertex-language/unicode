@@ -16,13 +16,13 @@ public let ReplacementCharacter: uint32 = 0xFFFD
 
 /// IsValid says whether cp is a code point that can be encoded: in range
 /// and not a surrogate.
-public func IsValid(_ cp: uint32) -> bool {
+public func IsValid(cp: uint32) -> bool {
     return cp <= MaxCodePoint && !IsSurrogate(cp)
 }
 
 /// IsSurrogate says whether cp is in U+D800...U+DFFF, the range UTF-16
 /// reserves for pairs.
-public func IsSurrogate(_ cp: uint32) -> bool {
+public func IsSurrogate(cp: uint32) -> bool {
     return cp >= 0xD800 && cp <= 0xDFFF
 }
 
@@ -103,7 +103,7 @@ public enum GeneralCategory: Equatable {
     }
 
     /// FromIndex is the category at a table index.
-    public static func FromIndex(_ i: int) -> GeneralCategory {
+    public static func FromIndex(i: int) -> GeneralCategory {
         return allCategories[i]
     }
 }
@@ -119,13 +119,13 @@ let allCategories: [GeneralCategory] = [
 let categoryAbbreviations: [string] = ["Cn", "Lu", "Ll", "Lt", "Lm", "Lo", "Mn", "Mc", "Me", "Nd", "Nl", "No", "Pc", "Pd", "Ps", "Pe", "Pi", "Pf", "Po", "Sm", "Sc", "Sk", "So", "Zs", "Zl", "Zp", "Cc", "Cf", "Cs", "Co"]
 
 /// categoryIndex is the table index of cp's category.
-func categoryIndex(_ cp: uint32) -> int {
+func categoryIndex(cp: uint32) -> int {
     if cp > MaxCodePoint { return 0 }
     return int(categoryKind[runIndex(categoryStart, cp)])
 }
 
 /// runIndex finds the run containing cp: the last start at or below it.
-func runIndex(_ starts: [uint32], _ cp: uint32) -> int {
+func runIndex(starts: [uint32], cp: uint32) -> int {
     var lo = 0
     var hi = starts.count - 1
     while lo < hi {
@@ -136,61 +136,61 @@ func runIndex(_ starts: [uint32], _ cp: uint32) -> int {
 }
 
 /// Category is cp's General_Category.
-public func Category(_ cp: uint32) -> GeneralCategory {
+public func Category(cp: uint32) -> GeneralCategory {
     return allCategories[categoryIndex(cp)]
 }
 
 /// IsLetter: L (Lu, Ll, Lt, Lm, Lo).
-public func IsLetter(_ cp: uint32) -> bool {
+public func IsLetter(cp: uint32) -> bool {
     if cp < 0x80 { return (cp | 0x20) >= 0x61 && (cp | 0x20) <= 0x7A }
     let c = categoryIndex(cp)
     return c >= 1 && c <= 5
 }
 
 /// IsMark: M (Mn, Mc, Me).
-public func IsMark(_ cp: uint32) -> bool {
+public func IsMark(cp: uint32) -> bool {
     let c = categoryIndex(cp)
     return c >= 6 && c <= 8
 }
 
 /// IsNumber: N (Nd, Nl, No).
-public func IsNumber(_ cp: uint32) -> bool {
+public func IsNumber(cp: uint32) -> bool {
     if cp < 0x80 { return cp >= 0x30 && cp <= 0x39 }
     let c = categoryIndex(cp)
     return c >= 9 && c <= 11
 }
 
 /// IsDigit: Nd, a decimal digit in any script.
-public func IsDigit(_ cp: uint32) -> bool {
+public func IsDigit(cp: uint32) -> bool {
     if cp < 0x80 { return cp >= 0x30 && cp <= 0x39 }
     return categoryIndex(cp) == 9
 }
 
 /// IsPunctuation: P (Pc, Pd, Ps, Pe, Pi, Pf, Po).
-public func IsPunctuation(_ cp: uint32) -> bool {
+public func IsPunctuation(cp: uint32) -> bool {
     let c = categoryIndex(cp)
     return c >= 12 && c <= 18
 }
 
 /// IsSymbol: S (Sm, Sc, Sk, So).
-public func IsSymbol(_ cp: uint32) -> bool {
+public func IsSymbol(cp: uint32) -> bool {
     let c = categoryIndex(cp)
     return c >= 19 && c <= 22
 }
 
 /// IsSeparator: Z (Zs, Zl, Zp).
-public func IsSeparator(_ cp: uint32) -> bool {
+public func IsSeparator(cp: uint32) -> bool {
     let c = categoryIndex(cp)
     return c >= 23 && c <= 25
 }
 
 /// IsControl: Cc.
-public func IsControl(_ cp: uint32) -> bool {
+public func IsControl(cp: uint32) -> bool {
     return categoryIndex(cp) == 26
 }
 
 /// IsAssigned: anything but Cn.
-public func IsAssigned(_ cp: uint32) -> bool {
+public func IsAssigned(cp: uint32) -> bool {
     return categoryIndex(cp) != 0
 }
 
@@ -207,13 +207,13 @@ public struct PropertySet {
     }
 
     /// Contains says whether cp has the property.
-    public func Contains(_ cp: uint32) -> bool {
+    public func Contains(cp: uint32) -> bool {
         return inRanges(Ranges, cp)
     }
 }
 
 /// inRanges binary-searches flat [lo, hi] pairs.
-func inRanges(_ r: [uint32], _ cp: uint32) -> bool {
+func inRanges(r: [uint32], cp: uint32) -> bool {
     var lo = 0
     var hi = r.count / 2 - 1
     while lo <= hi {
@@ -229,7 +229,7 @@ func inRanges(_ r: [uint32], _ cp: uint32) -> bool {
     return false
 }
 
-func propertyIndex(_ name: string) -> int {
+func propertyIndex(name: string) -> int {
     var i = 0
     while i < propertyNames.count {
         if propertyNames[i] == name { return i }
@@ -241,7 +241,7 @@ func propertyIndex(_ name: string) -> int {
 /// Property is the set for a binary property by any of its names: long
 /// ("White_Space"), short ("WSpace") or other alias ("space"). Nil if
 /// there is no such binary property.
-public func Property(_ name: string) -> PropertySet? {
+public func Property(name: string) -> PropertySet? {
     var i = propertyIndex(name)
     if i < 0 {
         var a = 0
@@ -270,48 +270,48 @@ let idStartRanges = propertyRanges[propertyIndex("ID_Start")]
 let idContinueRanges = propertyRanges[propertyIndex("ID_Continue")]
 
 /// IsWhitespace is the White_Space property.
-public func IsWhitespace(_ cp: uint32) -> bool {
+public func IsWhitespace(cp: uint32) -> bool {
     if cp < 0x80 { return cp == 0x20 || (cp >= 0x09 && cp <= 0x0D) }
     return inRanges(whiteSpaceRanges, cp)
 }
 
 /// IsAlphabetic is the Alphabetic property: letters, and marks and
 /// numbers that behave as letters.
-public func IsAlphabetic(_ cp: uint32) -> bool {
+public func IsAlphabetic(cp: uint32) -> bool {
     if cp < 0x80 { return (cp | 0x20) >= 0x61 && (cp | 0x20) <= 0x7A }
     return inRanges(alphabeticRanges, cp)
 }
 
 /// IsUppercase is the Uppercase property (Lu and Other_Uppercase).
-public func IsUppercase(_ cp: uint32) -> bool {
+public func IsUppercase(cp: uint32) -> bool {
     if cp < 0x80 { return cp >= 0x41 && cp <= 0x5A }
     return inRanges(uppercaseRanges, cp)
 }
 
 /// IsLowercase is the Lowercase property (Ll and Other_Lowercase).
-public func IsLowercase(_ cp: uint32) -> bool {
+public func IsLowercase(cp: uint32) -> bool {
     if cp < 0x80 { return cp >= 0x61 && cp <= 0x7A }
     return inRanges(lowercaseRanges, cp)
 }
 
 /// IsCased is the Cased property.
-public func IsCased(_ cp: uint32) -> bool {
+public func IsCased(cp: uint32) -> bool {
     return inRanges(casedRanges, cp)
 }
 
 /// IsCaseIgnorable is the Case_Ignorable property.
-public func IsCaseIgnorable(_ cp: uint32) -> bool {
+public func IsCaseIgnorable(cp: uint32) -> bool {
     return inRanges(caseIgnorableRanges, cp)
 }
 
 /// IsIDStart is ID_Start (UAX #31): what may begin an identifier.
-public func IsIDStart(_ cp: uint32) -> bool {
+public func IsIDStart(cp: uint32) -> bool {
     if cp < 0x80 { return (cp | 0x20) >= 0x61 && (cp | 0x20) <= 0x7A }
     return inRanges(idStartRanges, cp)
 }
 
 /// IsIDContinue is ID_Continue (UAX #31): what may follow in one.
-public func IsIDContinue(_ cp: uint32) -> bool {
+public func IsIDContinue(cp: uint32) -> bool {
     if cp < 0x80 { return ((cp | 0x20) >= 0x61 && (cp | 0x20) <= 0x7A) || (cp >= 0x30 && cp <= 0x39) || cp == 0x5F }
     return inRanges(idContinueRanges, cp)
 }
@@ -339,13 +339,13 @@ let eawValues: [EastAsianWidth] = [.neutral, .ambiguous, .fullwidth, .halfwidth,
 
 /// EastAsianWidthOf is cp's East_Asian_Width, from EastAsianWidth.txt
 /// and its defaults.
-public func EastAsianWidthOf(_ cp: uint32) -> EastAsianWidth {
+public func EastAsianWidthOf(cp: uint32) -> EastAsianWidth {
     if cp > MaxCodePoint { return .neutral }
     return eawValues[int(eawKind[runIndex(eawStart, cp)])]
 }
 
 /// IsWide: East_Asian_Width W or F -- two cells in a terminal.
-public func IsWide(_ cp: uint32) -> bool {
+public func IsWide(cp: uint32) -> bool {
     if cp < 0x1100 { return false }
     let k = eawKind[runIndex(eawStart, min(cp, MaxCodePoint))]
     return k == 5 || k == 2
@@ -390,21 +390,21 @@ let bidiValues: [BidiClass] = [.L, .R, .AL, .EN, .ES, .ET, .AN, .CS, .NSM, .BN, 
 
 /// BidiClassOf is cp's Bidi_Class, from UnicodeData.txt and the defaults
 /// for unassigned code points.
-public func BidiClassOf(_ cp: uint32) -> BidiClass {
+public func BidiClassOf(cp: uint32) -> BidiClass {
     if cp > MaxCodePoint { return .L }
     return bidiValues[int(bidiKind[runIndex(bidiStart, cp)])]
 }
 
 /// Script is cp's Script property, by its long name ("Latin", "Greek",
 /// "Common", "Unknown").
-public func Script(_ cp: uint32) -> string {
+public func Script(cp: uint32) -> string {
     if cp > MaxCodePoint { return "Unknown" }
     return scriptNames[int(scriptKind[runIndex(scriptStart, cp)])]
 }
 
 /// ScriptExtensions is cp's Script_Extensions, as long names: the scripts
 /// a shared character is used with.
-public func ScriptExtensions(_ cp: uint32) -> [string] {
+public func ScriptExtensions(cp: uint32) -> [string] {
     var lo = 0
     var hi = scxRanges.count / 2 - 1
     while lo <= hi {
@@ -428,7 +428,7 @@ public func ScriptExtensions(_ cp: uint32) -> [string] {
 
 /// ScriptName resolves a script's long or short name ("Greek" or "Grek")
 /// to its long name, or nil.
-public func ScriptName(_ name: string) -> string? {
+public func ScriptName(name: string) -> string? {
     var i = 0
     while i < scriptNames.count {
         if scriptNames[i] == name || scriptShortNames[i] == name { return scriptNames[i] }
@@ -439,7 +439,7 @@ public func ScriptName(_ name: string) -> string? {
 
 /// ScriptRanges is the set of code points of one script (by long name),
 /// or with extensions, the ones whose Script_Extensions include it.
-public func ScriptRanges(_ name: string, extensions: bool = false) -> PropertySet {
+public func ScriptRanges(name: string, extensions: bool = false) -> PropertySet {
     var idx = -1
     var i = 0
     while i < scriptNames.count {
@@ -500,7 +500,7 @@ public func ScriptRanges(_ name: string, extensions: bool = false) -> PropertySe
     return PropertySet(ranges: sortRanges(result))
 }
 
-func sortRanges(_ flat: [uint32]) -> [uint32] {
+func sortRanges(flat: [uint32]) -> [uint32] {
     var pairs: [(uint32, uint32)] = []
     var i = 0
     while i + 1 < flat.count {
@@ -522,7 +522,7 @@ func sortRanges(_ flat: [uint32]) -> [uint32] {
 
 /// CategoryAbbreviation resolves a general category's or group's name
 /// ("Letter", "Lu", "Uppercase_Letter", "digit") to its abbreviation, or nil.
-public func CategoryAbbreviation(_ name: string) -> string? {
+public func CategoryAbbreviation(name: string) -> string? {
     for a in categoryAbbreviations where a == name { return a }
     var i = 0
     while i < categoryAliasFrom.count {
@@ -535,7 +535,7 @@ public func CategoryAbbreviation(_ name: string) -> string? {
 
 /// CategoryRanges is the set of code points in a general category, or in
 /// a group of them (L, M, N, P, S, Z, C, or LC), by any of its names.
-public func CategoryRanges(_ name: string) -> PropertySet? {
+public func CategoryRanges(name: string) -> PropertySet? {
     guard let abbreviation = CategoryAbbreviation(name) else { return nil }
     var want: [int] = []
     var i = 0

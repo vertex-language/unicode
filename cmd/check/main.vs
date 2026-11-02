@@ -12,7 +12,7 @@ import (
 
 var failures = 0
 
-func check(_ ok: bool, _ msg: string) {
+func check(ok: bool, msg: string) {
     if ok {
         print("ok    \(msg)")
     } else {
@@ -21,7 +21,7 @@ func check(_ ok: bool, _ msg: string) {
     }
 }
 
-func same(_ a: [uint32], _ b: [uint32]) -> bool {
+func same(a: [uint32], b: [uint32]) -> bool {
     if a.count != b.count { return false }
     var i = 0
     while i < a.count {
